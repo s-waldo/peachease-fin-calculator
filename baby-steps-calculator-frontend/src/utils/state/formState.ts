@@ -1,6 +1,6 @@
 import { type StateCreator } from "zustand"
 
-type UserData = {
+export type UserData = {
   age: string
   annualIncome: string
   savings: string
@@ -18,14 +18,14 @@ export type DebtData = {
   minimumPayment: string
   interestRateAsInteger: string
 }
-type GoalsData = {
+export type GoalsData = {
   targetEmergencyFund: string
   targetRetirementBalance: string
   snowballAmount: string
   projectedReturns: string
 }
 
-type FormData = {
+export type FormData = {
   user: UserData
   mortgage: MortgageData
   debts: DebtData[]

@@ -4,9 +4,9 @@ export default function Introduction() {
   const nextStep = useGlobalStore((state) => state.nextStep)
   return (
     <>
-      <h2>Welcome to the Baby Steps Calculator!</h2>
+      <h2 className="text-2xl font-bold">Welcome to Peachy!</h2>
       <p>Get started today to project your financial future.</p>
-      <h3>How does it work?</h3>
+      <h3 className="italic">How does it work?</h3>
       <p>
         Answer a few questions to get your financial freedom date in accordance
         to the baby steps plan. Once calculated, you'll be able to come back in
@@ -14,7 +14,7 @@ export default function Introduction() {
       </p>
 
       <p>Ready to go?</p>
-      <button onClick={nextStep}>Start</button>
+      <button className="btn btn-primary" onClick={nextStep}>Start</button>
     </>
   )
 }

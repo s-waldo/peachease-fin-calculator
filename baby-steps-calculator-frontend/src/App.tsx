@@ -7,12 +7,11 @@ import SetDebts from "./pages/SetDebts"
 import { useGlobalStore } from "./utils/state/globalState"
 import SetGoals from "./pages/SetGoals"
 
-
 function App() {
   const step = useGlobalStore((state) => state.step)
   const nextStep = useGlobalStore((state) => state.nextStep)
   const prevStep = useGlobalStore((state) => state.prevStep)
-  
+
   const steps = [
     <Introduction />,
     <SetPersonalInfo />,
@@ -28,16 +27,20 @@ function App() {
         display: "grid",
         grid: "1fr 1fr 1fr / auto-flow",
         width: "50%",
-        height: "100dvh"
+        height: "100dvh",
       }}
     >
-      <div style={{width: "75%", minWidth: "450px"}}>{steps[step]}</div>
+      <div style={{ width: "75%", minWidth: "450px" }}>{steps[step]}</div>
       <div>
         <p>{step}</p>
-        <button onClick={prevStep} disabled={step <= 0}>
+        <button
+          className="btn btn-secondary"
+          onClick={prevStep}
+          disabled={step <= 0}
+        >
           Prev
         </button>
-        <button onClick={nextStep} disabled={!(step < steps.length - 1)}>
+        <button className="btn btn-secondary" onClick={nextStep} disabled={!(step < steps.length - 1)}>
           Next
         </button>
       </div>
