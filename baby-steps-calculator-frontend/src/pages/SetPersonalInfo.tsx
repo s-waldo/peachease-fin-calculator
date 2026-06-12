@@ -1,7 +1,10 @@
 import {
   FormatDecimalNumberInput,
   FormBlock,
+  FormFieldset,
   FormInput,
+  FormLabel,
+  FormTitle,
 } from "../components/form/formComponents"
 import { formatInputValueToNumericDecimals } from "../utils/conversions"
 import type { UserData } from "../utils/state/formState"
@@ -23,9 +26,10 @@ export default function SetPersonalInfo() {
   }
   return (
     <FormBlock>
-      <form>
-        <label htmlFor="annualIncome">Age</label>
-        <FormInput 
+      <FormTitle>Personal Information</FormTitle>
+      <FormFieldset>
+        <FormLabel htmlFor="annualIncome">Age</FormLabel>
+        <FormInput
           type="number"
           name="age"
           id="age"
@@ -34,30 +38,36 @@ export default function SetPersonalInfo() {
           value={userData.age}
           onChange={handleChange}
         />
-        <label htmlFor="annualIncome">Annual Income</label>
-        <FormatDecimalNumberInput 
+      </FormFieldset>
+      <FormFieldset>
+        <FormLabel htmlFor="annualIncome">Annual Income</FormLabel>
+        <FormatDecimalNumberInput
           name="annualIncome"
           id="annualIncome"
           value={userData.annualIncome}
           onChange={handleFormattedChange}
         />
+      </FormFieldset>
 
-        <label htmlFor="annualIncome">Savings</label>
-        <FormatDecimalNumberInput 
+      <FormFieldset>
+        <FormLabel htmlFor="annualIncome">Savings</FormLabel>
+        <FormatDecimalNumberInput
           name="savings"
           id="savings"
           value={userData.savings}
           onChange={handleFormattedChange}
         />
+      </FormFieldset>
 
-        <label htmlFor="annualIncome">Retirement Balance</label>
+      <FormFieldset>
+        <FormLabel htmlFor="annualIncome">Retirement Balance</FormLabel>
         <FormatDecimalNumberInput
           value={userData.retirementBalance}
           onChange={handleFormattedChange}
           name="retirementBalance"
           id="retirementBalance"
         />
-      </form>
+      </FormFieldset>
     </FormBlock>
   )
 }

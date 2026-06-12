@@ -1,4 +1,4 @@
-import { type ComponentProps, type HTMLInputTypeAttribute, type ReactNode } from "react"
+import { type HTMLInputTypeAttribute, type ReactNode } from "react"
 import { useGlobalStore } from "../../utils/state/globalState"
 
 export function FormBlock({ children }: { children: ReactNode }) {
@@ -7,10 +7,9 @@ export function FormBlock({ children }: { children: ReactNode }) {
   const nextStep = useGlobalStore((state) => state.nextStep)
 
   return (
-    <>
-      <div>{children}</div>
-      <div>
-        <p>{step}</p>
+    <FormCard>
+      <div className="w-full">{children}</div>
+      <div className="w-full flex justify-end gap-4">
         <button
           className="btn btn-primary"
           onClick={prevStep}
@@ -26,8 +25,20 @@ export function FormBlock({ children }: { children: ReactNode }) {
           Next
         </button>
       </div>
-    </>
+    </FormCard>
   )
+}
+
+export function FormCard({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex flex-col rounded-2xl shadow items-center justify-center p-8 gap-8">
+      {children}
+    </div>
+  )
+}
+
+export function FormTitle({ children }: { children: ReactNode }) {
+  return <h2 className="text-2xl bold">{children}</h2>
 }
 
 export function FormInput({
@@ -76,7 +87,44 @@ export function FormatDecimalNumberInput({ value, onChange, name, id }) {
     </label>
   )
 }
+export function FormPercentInput({ value, onChange, name, id }) {
+  return (
+    <label className="input">
+      <input
+        type="text"
+        inputMode="decimal"
+        id={id}
+        name={name}
+        value={value}
+        onChange={onChange}
+      />
+      <span>%</span>
+    </label>
+  )
+}
 
-export function FormLabel() {
-  return <label htmlFor="annualIncome">Age</label>
+export function FormLabel({
+  children,
+  htmlFor,
+}: {
+  children: ReactNode
+  htmlFor: string
+}) {
+  return (
+    <label className="label" htmlFor={htmlFor}>
+      {children}
+    </label>
+  )
+}
+export function FormFieldset({ children }: { children: ReactNode }) {
+  return <fieldset className="fieldset">{children}</fieldset>
+}
+
+
+export function FormAddDebtForm() {
+
+}
+
+export function FormDebtField() {
+  
 }
