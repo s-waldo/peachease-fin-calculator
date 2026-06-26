@@ -1,92 +1,74 @@
 import { useState } from "react"
-import { useGlobalStore } from "../utils/state/globalState"
-import type { DebtData } from "../utils/state/formState"
 import {
   FormatDecimalNumberInput,
-  FormBlock,
   FormFieldset,
   FormInput,
   FormLabel,
   FormPercentInput,
   FormTitle,
+  Input,
 } from "../components/form/formComponents"
+import { useFieldArray } from "react-hook-form"
 
-const defaultCurrDebtData = {
-  id: "",
-  name: "",
-  balance: "0.00",
-  interestRateAsInteger: "0.00",
-  minimumPayment: "0.00",
-}
-
-export default function SetDebts() {
-  const debts = useGlobalStore((state) => state.formData.debts)
-  const addDebt = useGlobalStore((state) => state.addDebt)
-  const deleteDebt = useGlobalStore((state) => state.deleteDebt)
-
-  const [currDebt, setCurrDebt] = useState<DebtData>(defaultCurrDebtData)
+export default function SetDebts({ control, watch, register }) {
   const [isFormShown, setIsFormShown] = useState(false)
-
-  const handleSubmit = () => {
-    addDebt({ ...currDebt, id: crypto.randomUUID() })
-    resetForm()
-    showForm()
-  }
 
   const showForm = () => {
     setIsFormShown((prev) => !prev)
   }
-  const resetForm = () => {
-    setCurrDebt(defaultCurrDebtData)
-  }
-  const editDebt = (id: string) => {
-    setIsFormShown(true)
-    const editableDebt = debts.find((debt) => debt.id === id)
-    if (!editableDebt) return
-    deleteDebt(id)
-    setCurrDebt(editableDebt)
-  }
+
+  const { fields, update, append, remove } = useFieldArray({
+    control,
+    name: "debts",
+  })
+
+  const watchedDebts = watch("debts")
 
   return (
-    <FormBlock>
+    <>
       <FormTitle>Debts</FormTitle>
       <div>
-        {debts.length === 0 && !isFormShown ? (
+        {fields.length === 0 && !isFormShown ? (
           <div>You currently have no debts.</div>
         ) : (
-          debts.map((debt) => {
+          fields.map((field, index) => {
+            if (isFormShown && index === fields.length - 1) return null
+
+            const currentDebt = watchedDebts[index] || field
             return (
               <div
                 className="rounded shadow py-2 px-2 grid grid-cols-3 tabular-nums"
-                key={debt.id}
+                key={field.id}
               >
                 <div className="col-span-2 flex flex-col">
-                  <div className="text-lg font-bold">{debt.name}</div>
+                  <div className="text-lg font-bold">{currentDebt.name}</div>
                   <div className="flex flex-col text-xs">
                     <div>
-                      Balance: <strong>${debt.balance}</strong>
+                      Balance: <strong>${currentDebt.balance}</strong>
                     </div>
                     <div>
-                      Interest: <strong>{debt.interestRateAsInteger}%</strong>
+                      Interest: <strong>{currentDebt.interestRate}%</strong>
                     </div>
                     <div>
                       Min. Payment:{" "}
                       <strong>
-                        ${Number(debt.minimumPayment).toLocaleString()}
+                        ${Number(currentDebt.minimumPayment).toLocaleString()}
                       </strong>
                     </div>
                   </div>
                 </div>
                 <div className="flex justify-end items-center">
                   <button
+                    type="button"
                     className="btn btn-xs btn-ghost"
-                    onClick={() => editDebt(debt.id)}
+                    onClick={() => null}
                   >
                     <i className="text-sm fa-solid fa-edit"></i>
                   </button>
                   <button
+                    type="button"
                     className="btn btn-xs btn-ghost"
-                    onClick={() => deleteDebt(debt.id)}
+                    onClick={() => remove(index)}
                   >
                     <i className="text-sm fa-solid fa-trash"></i>
                   </button>
@@ -99,75 +81,74 @@ export default function SetDebts() {
       <div>
         {isFormShown ? (
           <div>
-            <FormFieldset>
-              <FormLabel htmlFor="name">Name</FormLabel>
-              <FormInput
-                id="name"
-                name="name"
+            <fieldset>
+              <label htmlFor="name">Name</label>
+              <input
                 type="text"
-                value={currDebt.name}
-                onChange={(e) =>
-                  setCurrDebt((prev) => ({ ...prev, name: e.target.value }))
-                }
+                id="name"
+                {...register(`debts.${fields.length - 1}.name`)}
               />
-            </FormFieldset>
-            <FormFieldset>
-              <FormLabel htmlFor="balance">Balance</FormLabel>
-              <FormatDecimalNumberInput
+            </fieldset>
+            <fieldset>
+              <label htmlFor="balance">Balance</label>
+              <input
                 id="balance"
-                name="balance"
-                value={currDebt.balance}
-                onChange={(e) => {
-                  const amountStr = e.target.value.replace(/[^\d]/g, "")
-                  setCurrDebt((prev) => ({
-                    ...prev,
-                    balance: (Number(amountStr) / 100).toFixed(2),
-                  }))
-                }}
+                {...register(`debts.${fields.length - 1}.balance`)}
               />
-            </FormFieldset>
-            <FormFieldset>
-              <FormLabel htmlFor="minimumPayment">Minimum Payment</FormLabel>
-              <FormatDecimalNumberInput
+            </fieldset>
+            <fieldset>
+              <label htmlFor="minimumPayment">Minimum Payment</label>
+              <input
                 id="minimumPayment"
-                name="minimumPayment"
-                value={currDebt.minimumPayment}
-                onChange={(e) => {
-                  const amountStr = e.target.value.replace(/[^\d]/g, "")
-                  setCurrDebt((prev) => ({
-                    ...prev,
-                    minimumPayment: (Number(amountStr) / 100).toFixed(2),
-                  }))
-                }}
+                {...register(`debts.${fields.length - 1}.minimumPayment`)}
               />
-            </FormFieldset>
-            <FormFieldset>
-              <FormLabel htmlFor="interestRateAsInteger">
-                Interest Rate
-              </FormLabel>
-              <FormPercentInput
-                value={currDebt.interestRateAsInteger}
-                onChange={(e) => {
-                  const amountStr = e.target.value.replace(/[^\d]/g, "")
-                  setCurrDebt((prev) => ({
-                    ...prev,
-                    interestRateAsInteger: (Number(amountStr) / 100).toFixed(2),
-                  }))
-                }}
-                id={"interestRateAsInteger"}
-                name={"interestRateAsInteger"}
+            </fieldset>
+            <fieldset>
+              <label htmlFor="interestRate">Interest Rate</label>
+              <Input
+                id={"interestRate"}
+                register={register}
+                name={`debts.${fields.length - 1}.interestRate`}
               />
-            </FormFieldset>
-            <button className="btn btn-ghost" onClick={handleSubmit}>
+            </fieldset>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => {
+                showForm()
+              }}
+            >
               <i className="fa-solid fa-save"></i>Save
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => {
+                remove(fields.length - 1)
+                showForm()
+              }}
+            >
+              <i className="fa-solid fa-x"></i>Cancel
             </button>
           </div>
         ) : (
-          <button className="btn btn-ghost" onClick={showForm}>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => {
+              showForm()
+              append({
+                name: "",
+                balance: "",
+                interestRate: "",
+                minimumPayment: "",
+              })
+            }}
+          >
             <i className="fa-solid fa-plus"></i>Add Debt
           </button>
         )}
       </div>
-    </FormBlock>
+    </>
   )
 }

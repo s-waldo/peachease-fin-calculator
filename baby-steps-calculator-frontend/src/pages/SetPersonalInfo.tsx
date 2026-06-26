@@ -1,3 +1,4 @@
+import { useForm } from "react-hook-form"
 import {
   FormatDecimalNumberInput,
   FormBlock,
@@ -9,8 +10,25 @@ import {
 import { formatInputValueToNumericDecimals } from "../utils/conversions"
 import type { UserData } from "../utils/state/formState"
 import { useGlobalStore } from "../utils/state/globalState"
+import { zodResolver } from "@hookform/resolvers/zod"
+import z from "zod"
+
+const PersonalSchema = z.object({
+  age: z.string().min(1),
+  annualIncome: z.string(),
+  savings: z.string(),
+  retirementBalance: z.string().min(15, "Too short!"),
+})
 
 export default function SetPersonalInfo() {
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(PersonalSchema),
+    mode: "onTouched",
+  })
   const userData = useGlobalStore((state) => state.formData.user)
   const setUserData = useGlobalStore((state) => state.setUserData)
 
@@ -24,12 +42,17 @@ export default function SetPersonalInfo() {
       formatInputValueToNumericDecimals(e.target.value),
     )
   }
+  const onSubmit = (e) => {
+    e.preventDefault()
+    console.log("Submitted!!!")
+  }
   return (
-    <FormBlock>
+    <FormBlock onSubmit={handleSubmit(onSubmit)}>
       <FormTitle>Personal Information</FormTitle>
       <FormFieldset>
         <FormLabel htmlFor="annualIncome">Age</FormLabel>
         <FormInput
+          register={register("age")}
           type="number"
           name="age"
           id="age"
@@ -38,11 +61,12 @@ export default function SetPersonalInfo() {
           value={userData.age}
           onChange={handleChange}
         />
+        {errors.age && <p>{errors.age?.message}</p>}
       </FormFieldset>
       <FormFieldset>
         <FormLabel htmlFor="annualIncome">Annual Income</FormLabel>
         <FormatDecimalNumberInput
-          name="annualIncome"
+          register={register("annualIncome")}
           id="annualIncome"
           value={userData.annualIncome}
           onChange={handleFormattedChange}
@@ -52,7 +76,7 @@ export default function SetPersonalInfo() {
       <FormFieldset>
         <FormLabel htmlFor="annualIncome">Savings</FormLabel>
         <FormatDecimalNumberInput
-          name="savings"
+          register={register('savings')}
           id="savings"
           value={userData.savings}
           onChange={handleFormattedChange}
@@ -64,7 +88,7 @@ export default function SetPersonalInfo() {
         <FormatDecimalNumberInput
           value={userData.retirementBalance}
           onChange={handleFormattedChange}
-          name="retirementBalance"
+          register={register('retirementBalance')}
           id="retirementBalance"
         />
       </FormFieldset>
