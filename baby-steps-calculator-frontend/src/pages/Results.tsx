@@ -8,9 +8,11 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts"
+import { useGlobalStore } from "../utils/state/globalState"
 
 export default function Results() {
   // Dummy data
+  const prevStep = useGlobalStore(state => state.prevStep)
   const financialFreedomPossible = true
   const millionNetWorthDate = "2032-06-15"
   const projectedRetirement = "2045-03-20"
@@ -77,7 +79,7 @@ export default function Results() {
   ]
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-dvh p-8">
       <div className="w-full max-w-xl mx-auto">
         <h1 className="text-4xl font-bold mb-8 text-base-content">
           Your Financial Freedom Plan
@@ -226,7 +228,7 @@ export default function Results() {
 
         {/* Action Buttons */}
         <div className="flex gap-4 mt-8 justify-center">
-          <button className="btn btn-primary">Adjust Plan</button>
+          <button className="btn btn-primary" onClick={prevStep}>Adjust Plan</button>
           <button className="btn btn-ghost">Download Report</button>
         </div>
       </div>

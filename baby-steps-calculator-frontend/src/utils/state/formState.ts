@@ -12,11 +12,11 @@ export type MortgageData = {
   payment: string
 }
 export type DebtData = {
-  id: string
+  // id: string
   name: string
   balance: string
   minimumPayment: string
-  interestRateAsInteger: string
+  interestRate: string
 }
 export type GoalsData = {
   targetEmergencyFund: string
@@ -37,8 +37,8 @@ export interface FormStateStoreT {
   setUserData: (section: keyof UserData, newData: string) => void
   setMortgageData: (section: keyof MortgageData, newData: string) => void
   addDebt: (debt: DebtData) => void
-  deleteDebt: (id: string) => void
   setGoalsData: (section: keyof GoalsData, newData: string) => void
+  setFormData: <K extends keyof FormData>(section: K, newData: FormData[K]) => void
   resetForm: () => void
 }
 const initialFormValue: FormData = {
@@ -84,14 +84,6 @@ export const formStateStore: StateCreator<
         debts: [...state.formData.debts, debt],
       },
     })),
-  deleteDebt: (id) => {
-    set((state) => ({
-      formData: {
-        ...state.formData,
-        debts: state.formData.debts.filter((debt) => debt.id !== id),
-      },
-    }))
-  },
   setGoalsData: (section, newData) =>
     set((state) => ({
       formData: {
@@ -102,5 +94,13 @@ export const formStateStore: StateCreator<
         },
       },
     })),
+    setFormData: (section, newData) => {
+      set((state) => ({
+        formData: {
+          ...state.formData,
+          [section]: newData
+        }
+      }))
+    },
   resetForm: () => set({ formData: initialFormValue }),
 })

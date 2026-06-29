@@ -1,7 +1,7 @@
 import { useGlobalStore } from "../utils/state/globalState"
 
 export default function Introduction() {
-  const nextStep = useGlobalStore((state) => state.nextStep)
+  const nextStep = useGlobalStore(state => state.nextStep)
   return (
     <>
       <h2 className="text-2xl font-bold">Welcome to Peachy!</h2>

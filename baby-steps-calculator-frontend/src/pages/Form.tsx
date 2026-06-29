@@ -1,9 +1,10 @@
 import { useState } from "react"
 import { FormTitle, Input } from "../components/form/formComponents"
-import { z } from "zod"
+import {  z } from "zod"
 import { useFieldArray, useForm, type FieldPath } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { formatInputValueToNumericDecimals } from "../utils/conversions"
+import { useGlobalStore } from "../utils/state/globalState"
 
 const steps = [
   {
@@ -38,7 +39,10 @@ const zFormData = z.object({
   annualIncome: z
     .string()
     .min(1, { error: "Annual Income is Required" })
-    .refine((val) => Number(val.replace(',', '')) > 0, "Must be greater than 0"),
+    .refine(
+      (val) => Number(val.replace(",", "")) > 0,
+      "Must be greater than 0",
+    ),
   savings: z.string().min(1, { error: "Savings is Required" }),
   retirementBalance: z
     .string()
@@ -49,15 +53,24 @@ const zFormData = z.object({
   targetEmergencyFund: z
     .string()
     .min(1, { error: "Target Emergency Fund is Required" })
-    .refine((val) => Number(val.replace(',', '')) > 0, "Must be greater than 0"),
+    .refine(
+      (val) => Number(val.replace(",", "")) > 0,
+      "Must be greater than 0",
+    ),
   targetRetirementBalance: z
     .string()
     .min(1, { error: "Target Retirement Balance is Required" })
-    .refine((val) => Number(val.replace(',', '')) > 0, "Must be greater than 0"),
+    .refine(
+      (val) => Number(val.replace(",", "")) > 0,
+      "Must be greater than 0",
+    ),
   snowballAmount: z
     .string()
     .min(1, { error: "Snowball Amount is Required" })
-    .refine((val) => Number(val.replace(',', '')) > 0, "Must be greater than 0"),
+    .refine(
+      (val) => Number(val.replace(",", "")) > 0,
+      "Must be greater than 0",
+    ),
   projectedReturns: z
     .string()
     .min(1, { error: "Projected Returns is Required" }),
@@ -73,6 +86,9 @@ const zFormData = z.object({
 
 type zFormDataT = z.infer<typeof zFormData>
 export default function Form() {
+  const nextStep = useGlobalStore((state) => state.nextStep)
+  const globalFormData = useGlobalStore((state) => state.formData)
+  const setFormData = useGlobalStore((state) => state.setFormData)
   const [step, setStep] = useState(0)
   const [isFormShown, setIsFormShown] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
@@ -82,24 +98,24 @@ export default function Form() {
     trigger,
     control,
     watch,
-    reset,
     handleSubmit,
+    getValues,
   } = useForm<zFormDataT>({
     resolver: zodResolver(zFormData),
     mode: "all",
     defaultValues: {
-      age: "25",
-      balance: "0.00",
-      annualIncome: "0.00",
-      debts: [],
-      payment: "0.00",
-      projectedReturns: "10",
-      rate: "0.00",
-      retirementBalance: "0.00",
-      savings: "0.00",
-      snowballAmount: "0.00",
-      targetEmergencyFund: "0.00",
-      targetRetirementBalance: "0.00",
+      age: globalFormData.user.age,
+      annualIncome: globalFormData.user.annualIncome,
+      savings: globalFormData.user.savings,
+      retirementBalance: globalFormData.user.retirementBalance,
+      balance: globalFormData.mortgage.balance,
+      payment: globalFormData.mortgage.payment,
+      rate: globalFormData.mortgage.rate,
+      debts: globalFormData.debts,
+      projectedReturns: globalFormData.goals.projectedReturns,
+      snowballAmount: globalFormData.goals.snowballAmount,
+      targetEmergencyFund: globalFormData.goals.targetEmergencyFund,
+      targetRetirementBalance: globalFormData.goals.targetRetirementBalance,
     },
   })
 
@@ -117,6 +133,28 @@ export default function Form() {
         shouldFocus: true,
       })
       if (!isValidPage) return
+      switch (step) {
+        case 0:
+          setFormData("user", {
+            age: getValues().age,
+            annualIncome: getValues().annualIncome,
+            savings: getValues().savings,
+            retirementBalance: getValues().retirementBalance,
+          })
+          break
+        case 1:
+          setFormData("mortgage", {
+            balance: getValues().balance,
+            payment: getValues().payment,
+            rate: getValues().rate,
+          })
+          break
+        case 2:
+          setFormData("debts", getValues().debts)
+          break
+        case 3:
+          break
+      }
       setStep((prev) => prev + 1)
     }
   }
@@ -125,17 +163,19 @@ export default function Form() {
     setIsFormShown((prev) => !prev)
   }
 
-  const resetForm = () => {
-    reset()
-    setStep(0)
-  }
-
   const prev = () => {
     if (step === 0) return
     setStep((prev) => prev - 1)
   }
   const onSubmit = (formData: zFormDataT) => {
     console.log(formData)
+    setFormData("goals", {
+      projectedReturns: getValues().projectedReturns,
+      snowballAmount: getValues().snowballAmount,
+      targetEmergencyFund: getValues().targetEmergencyFund,
+      targetRetirementBalance: getValues().targetRetirementBalance,
+    })
+    nextStep()
   }
 
   const handleEditIndex = (index: number) => {
@@ -149,12 +189,11 @@ export default function Form() {
   const watchedDebts = watch("debts")
 
   return (
-    <form className="w-full max-w-xl mx-auto" onSubmit={handleSubmit(onSubmit)}>
-      <div className="p-4 rounded-2xl mb-4 shadow">
-        <button type="button" className="btn btn-ghost" onClick={resetForm}>
-          Reset
-        </button>
-
+    <form
+      className="px-4 py-8 rounded-2xl mb-4 shadow w-full max-w-xl mx-auto"
+      onSubmit={handleSubmit(onSubmit)}
+    >
+      <div className="">
         {step === 0 && (
           <>
             <FormTitle>Personal Information</FormTitle>
@@ -622,12 +661,7 @@ export default function Form() {
           </>
         )}
       </div>
-      <div className="flex justify-between">
-        {step > 0 && (
-          <button type="button" className="btn btn-ghost" onClick={prev}>
-            <i className="fa-solid fa-arrow-left"></i>
-          </button>
-        )}
+      <div className="flex justify-between flex-row-reverse">
         {step === steps.length - 1 ? (
           <button type="submit" className="btn btn-success">
             Submit
@@ -635,6 +669,11 @@ export default function Form() {
         ) : (
           <button type="button" className="btn btn-primary" onClick={next}>
             Next
+          </button>
+        )}
+        {step > 0 && (
+          <button type="button" className="btn btn-ghost" onClick={prev}>
+            <i className="fa-solid fa-arrow-left"></i>
           </button>
         )}
       </div>
