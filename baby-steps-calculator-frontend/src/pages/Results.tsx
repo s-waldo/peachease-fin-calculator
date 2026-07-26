@@ -12,11 +12,12 @@ import { useGlobalStore } from "../utils/state/globalState"
 
 export default function Results() {
   // Dummy data
-  const prevStep = useGlobalStore(state => state.prevStep)
+  const age = useGlobalStore((state) => state.formData.user.age)
+  const prevStep = useGlobalStore((state) => state.prevStep)
+  const results = useGlobalStore((state) => state.results)
   const financialFreedomPossible = true
-  const millionNetWorthDate = "2032-06-15"
-  const projectedRetirement = "2045-03-20"
-
+  const projectedRetirement = (65 - Number(age)) * 12
+  const today = new Date()
   const netWorthProjection = [
     { year: 2024, netWorth: 0.15 },
     { year: 2027, netWorth: 0.35 },
@@ -25,6 +26,15 @@ export default function Results() {
     { year: 2042, netWorth: 2.5 },
     { year: 2045, netWorth: 3.2 },
   ]
+
+  const modifiedResults = results.map((data, index) => ({
+    month: index,
+    netWorth: data.savings + data.retirementAccountBalance,
+  }))
+  const millionNetWorthDate = today.setMonth(
+    today.getMonth() +
+      modifiedResults.find((val) => val.netWorth >= 1000000)?.month,
+  )
 
   const babySteps = [
     {
@@ -127,16 +137,10 @@ export default function Results() {
           {/* Projected Retirement Card */}
           <div className="card bg-base-100 shadow-lg">
             <div className="card-body">
-              <h2 className="card-title text-lg">Projected Retirement</h2>
+              <h2 className="card-title text-lg">Net Worth at Retirement</h2>
               <div className="text-3xl font-bold text-primary mt-4">
-                {new Date(projectedRetirement).getFullYear()}
+                {modifiedResults[projectedRetirement].netWorth.toLocaleString('en-US', {currency: "USD", style: "currency"})}
               </div>
-              <p className="text-sm text-base-content/70 mt-2">
-                {new Date(projectedRetirement).toLocaleDateString("en-US", {
-                  month: "long",
-                  year: "numeric",
-                })}
-              </p>
             </div>
           </div>
         </div>
@@ -146,17 +150,37 @@ export default function Results() {
           <div className="card-body">
             <h2 className="card-title text-xl mb-6">Net Worth Projection</h2>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={netWorthProjection}>
+              <BarChart data={modifiedResults}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="year" />
+                <XAxis
+                  dataKey="month"
+                  height={40}
+                  label={{ value: "Year", position: "insideBottom" }}
+                  tickFormatter={(data) =>
+                    Number(data / 12)
+                      .toFixed()
+                      .toLocaleString()
+                  }
+                  interval={modifiedResults.length > 10 ? Math.floor(modifiedResults.length / 10) : 0}
+                />
                 <YAxis
+                  tickFormatter={(data) =>
+                    Number(data / 1000000).toLocaleString() + "M"
+                  }
                   label={{
-                    value: "Net Worth (Millions)",
+                    value: "Net Worth",
                     angle: -90,
                     position: "insideLeft",
                   }}
                 />
-                <Tooltip formatter={(value) => `$${value}M`} />
+                <Tooltip
+                  formatter={(value) => `$${Number(value).toLocaleString()}`}
+                  labelFormatter={(value) => {
+                    if (value % 12 === 0)
+                      return `${Math.floor(value / 12)} years`
+                    return `${Math.floor(value / 12)} years ${value % 12} months`
+                  }}
+                />
                 <Legend />
                 <Bar
                   dataKey="netWorth"
@@ -228,7 +252,9 @@ export default function Results() {
 
         {/* Action Buttons */}
         <div className="flex gap-4 mt-8 justify-center">
-          <button className="btn btn-primary" onClick={prevStep}>Adjust Plan</button>
+          <button className="btn btn-primary" onClick={prevStep}>
+            Adjust Plan
+          </button>
           <button className="btn btn-ghost">Download Report</button>
         </div>
       </div>

@@ -42,7 +42,7 @@ export interface FormStateStoreT {
   resetForm: () => void
 }
 const initialFormValue: FormData = {
-  user: { age: "", annualIncome: "", savings: "", retirementBalance: "" },
+  user: { age: "35", annualIncome: "", savings: "", retirementBalance: "" },
   mortgage: { balance: "", rate: "", payment: "" },
   debts: [],
   goals: {

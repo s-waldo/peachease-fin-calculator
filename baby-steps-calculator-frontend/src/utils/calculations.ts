@@ -12,11 +12,11 @@ export function calculateFinancialFreedom(
   options: FFOptionsT,
 ) {
   // TODO: Create exception calculator for life as is.
-  if (snowball <= 0)
-    return "Error: Financial Freedom not possible if nothing changes."
+  // if (snowball <= 0)
+  //   return "Error: Financial Freedom not possible if nothing changes."
   options.projectedReturnAsInteger = options.projectedReturnAsInteger ?? 10
   options.targetEmergencyFund = options.targetEmergencyFund ?? 20000
-  const netWorthTracker = []
+  const netWorthTracker: FinancialFreedomMonthT[] = []
   const financialTracker = structuredClone(stats)
   // sort debts by balance from smallest to largest
   financialTracker.debts = financialTracker.debts.sort(
@@ -47,7 +47,7 @@ export function calculateFinancialFreedom(
 export function calculateMonthOfFinancialProgress(
   financialTracker: FinancialFreedomTrackerT,
   snowball: number,
-  {targetEmergencyFund, projectedReturnAsInteger}: FFOptionsT,
+  { targetEmergencyFund, projectedReturnAsInteger }: FFOptionsT,
 ): [FinancialFreedomTrackerT, number] {
   // do other monthly bills
   financialTracker.mortgage = payMortgage(financialTracker.mortgage)
@@ -154,7 +154,7 @@ export function calculateEmergencyFundTimeline(
   targetGoal: number,
   startingBalance = 0,
 ) {
-  const tracker = []
+  const tracker: { month: number; savings: number }[] = []
   let month = 0
   let savings = startingBalance
   while (savings < targetGoal) {
@@ -294,7 +294,7 @@ export function getMortgageSchedule(
   loanYears: number,
   payment: number,
 ) {
-  const paymentSchedule = []
+  const paymentSchedule: Record<string, number>[] = []
   const monthlyInterestRate = interestRateAsInteger / 12 / 100
   const totalPayments = loanYears * 12
   let balance = startingBalance
