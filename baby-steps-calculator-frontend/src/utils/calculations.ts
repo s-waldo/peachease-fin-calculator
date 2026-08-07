@@ -5,12 +5,23 @@ type FFOptionsT = {
   targetEmergencyFund: number
   projectedReturnAsInteger: number
 }
-export function calculateFinancialFreedom(
-  stats: FinancialFreedomTrackerT,
-  snowball: number,
-  ageInMonths: number,
-  options: FFOptionsT,
-) {
+
+function roundToCents(value: number) {
+  return Math.round(value * 100) / 100
+}
+
+interface calculateFinancialFreedomT {
+  stats: FinancialFreedomTrackerT
+  snowball: number
+  ageInMonths: number
+  options: FFOptionsT
+}
+export function calculateFinancialFreedom({
+  stats,
+  snowball,
+  ageInMonths,
+  options,
+}: calculateFinancialFreedomT) {
   // TODO: Create exception calculator for life as is.
   // if (snowball <= 0)
   //   return "Error: Financial Freedom not possible if nothing changes."
@@ -61,36 +72,50 @@ export function calculateMonthOfFinancialProgress(
 
   // Assess which baby step this month is on
   if (financialTracker.savings < 1000) {
-    financialTracker.savings +=
-      snowball + financialTracker.savings > 1000
-        ? 1000 - financialTracker.savings
-        : snowball
+    const amountToAdd = Math.min(snowball, 1000 - financialTracker.savings)
+    financialTracker.savings = roundToCents(
+      financialTracker.savings + amountToAdd,
+    )
   } else if (financialTracker.debts.length > 0) {
     if (financialTracker.debts[0].balance > 0) {
-      if (financialTracker.debts[0].balance > snowball) {
-        financialTracker.debts[0].balance -= snowball
-      } else {
-        financialTracker.debts[0].balance = 0
-      }
+      const amountApplied = Math.min(
+        snowball,
+        financialTracker.debts[0].balance,
+      )
+      financialTracker.debts[0].balance = roundToCents(
+        financialTracker.debts[0].balance - amountApplied,
+      )
     } else if (financialTracker.debts.length > 1) {
-      financialTracker.debts[1].balance -= snowball
+      const amountApplied = Math.min(
+        snowball,
+        financialTracker.debts[1].balance,
+      )
+      financialTracker.debts[1].balance = roundToCents(
+        financialTracker.debts[1].balance - amountApplied,
+      )
     }
-    if (financialTracker.debts[0].balance === 0) {
+    if (financialTracker.debts[0].balance <= 0) {
       snowball += financialTracker.debts[0].minimumPayment
       financialTracker.debts = financialTracker.debts.slice(1)
     }
   } else if (financialTracker.savings < targetEmergencyFund) {
-    financialTracker.savings += snowball
+    financialTracker.savings = roundToCents(financialTracker.savings + snowball)
   } else if (financialTracker.mortgage.balance > 0) {
     if (monthlyIncome * 0.15 < snowball) {
       const retirement = Math.floor(monthlyIncome * 0.15)
-      const extraPayment = snowball - retirement
-      financialTracker.mortgage.balance -= extraPayment
-      financialTracker.retirementAccountBalance += retirement
+      const extraPayment = roundToCents(snowball - retirement)
+      financialTracker.mortgage.balance = roundToCents(
+        financialTracker.mortgage.balance - extraPayment,
+      )
+      financialTracker.retirementAccountBalance = roundToCents(
+        financialTracker.retirementAccountBalance + retirement,
+      )
     }
   } else {
     const retirement = Math.floor(monthlyIncome * 0.25)
-    financialTracker.retirementAccountBalance += retirement
+    financialTracker.retirementAccountBalance = roundToCents(
+      financialTracker.retirementAccountBalance + retirement,
+    )
   }
   // perform that baby step
   // return tracker
@@ -98,14 +123,17 @@ export function calculateMonthOfFinancialProgress(
 }
 
 function payMortgage(mortgage: MortgageT) {
-  const interestPayment =
-    mortgage.balance * (mortgage.interestRateAsInteger / 12 / 100)
-  const principalPayment = Math.min(
-    (mortgage.payment * 100 - interestPayment * 100) / 100,
-    mortgage.balance,
+  const interestPayment = roundToCents(
+    mortgage.balance * (mortgage.interestRateAsInteger / 12 / 100),
   )
-  mortgage.balance =
-    Math.floor((mortgage.balance - principalPayment) * 100) / 100
+  const principalPayment = Math.max(
+    0,
+    Math.min(
+      roundToCents(mortgage.payment - interestPayment),
+      mortgage.balance,
+    ),
+  )
+  mortgage.balance = roundToCents(mortgage.balance - principalPayment)
   return mortgage
 }
 
@@ -116,17 +144,10 @@ function payDebts(debts: DebtType[]): DebtType[] {
       debt.balance,
       debt.interestRateAsInteger,
     )
-    // if monthly payment is less than balance
-    if (debt.minimumPayment >= interest + debt.balance) {
-      // apply monthly payments to balances or balance
-      debt.balance = 0
-    }
-    // else
-    else {
-      // apply minimum payment to balance
-      debt.balance -= debt.minimumPayment - interest
-      debt.balance = Math.floor(debt.balance * 100) / 100
-    }
+    const balanceChange = debt.minimumPayment - interest
+    const updatedBalance = roundToCents(debt.balance - balanceChange)
+
+    debt.balance = Math.max(0, updatedBalance)
   }
   return debtCopy
 }
@@ -247,7 +268,7 @@ export function calculateRetirementSavings(
 
 function monthlyRetirementInterest(balance: number, interestRate: number) {
   const monthlyRate = interestRate / 12 / 100
-  return Math.floor((balance + balance * monthlyRate) * 100) / 100
+  return roundToCents(balance + balance * monthlyRate)
 }
 
 // 529 Calculator

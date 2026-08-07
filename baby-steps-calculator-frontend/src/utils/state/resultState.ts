@@ -1,5 +1,9 @@
 import type { StateCreator } from "zustand"
 import { calculateFinancialFreedom, mockData } from "../calculations"
+import {
+  analyzeFinancialFreedomResults,
+  type FinancialFreedomSummaryT,
+} from "../resultAnalysis"
 
 export interface ResultsT {
   savings: number
@@ -19,7 +23,8 @@ export interface ResultsT {
 
 export interface ResultStateStoreT {
   results: ResultsT[]
-  setResults: (results: ResultsT[]) => void
+  summary: FinancialFreedomSummaryT
+  setResults: (results: ResultsT[], options: {targetEmergencyFund: number, targetRetirementBalance: number}) => void
   resetResults: () => void
 }
 
@@ -28,11 +33,29 @@ export const resultStateStore: StateCreator<
   [],
   [],
   ResultStateStoreT
-> = (set) => ({
-  results: calculateFinancialFreedom(mockData, 2000, 25 * 12, {
-    projectedReturnAsInteger: 10,
-    targetEmergencyFund: 25000,
-  }),
-  setResults: (results) => set({ results }),
-  resetResults: () => set({ results: [] }),
-})
+> = (set) => {
+  const calculatedResults = calculateFinancialFreedom({
+    stats: mockData,
+    snowball: 2000,
+    ageInMonths: 25 * 12,
+    options: {
+      projectedReturnAsInteger: 11,
+      targetEmergencyFund: 25000,
+    },
+  })
+
+  return {
+    results: calculatedResults,
+    summary: analyzeFinancialFreedomResults(calculatedResults, {
+      targetEmergencyFund: 25000,
+      targetRetirementBalance: 1000000
+    }),
+    setResults: (results, options) =>
+      set({
+        results,
+        summary: analyzeFinancialFreedomResults(results, options),
+      }),
+    resetResults: () =>
+      set({ results: [], summary: analyzeFinancialFreedomResults([], {targetEmergencyFund: 0, targetRetirementBalance: 0}) }),
+  }
+}

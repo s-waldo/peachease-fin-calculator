@@ -11,82 +11,23 @@ import {
 import { useGlobalStore } from "../utils/state/globalState"
 
 export default function Results() {
-  // Dummy data
-  const age = useGlobalStore((state) => state.formData.user.age)
   const prevStep = useGlobalStore((state) => state.prevStep)
   const results = useGlobalStore((state) => state.results)
-  const financialFreedomPossible = true
-  const projectedRetirement = (65 - Number(age)) * 12
+  const summary = useGlobalStore((state) => state.summary)
   const today = new Date()
-  const netWorthProjection = [
-    { year: 2024, netWorth: 0.15 },
-    { year: 2027, netWorth: 0.35 },
-    { year: 2032, netWorth: 1.0 },
-    { year: 2037, netWorth: 1.8 },
-    { year: 2042, netWorth: 2.5 },
-    { year: 2045, netWorth: 3.2 },
-  ]
 
   const modifiedResults = results.map((data, index) => ({
     month: index,
     netWorth: data.savings + data.retirementAccountBalance,
   }))
-  const millionNetWorthDate = today.setMonth(
-    today.getMonth() +
-      modifiedResults.find((val) => val.netWorth >= 1000000)?.month,
-  )
+  const millionNetWorthDate = new Date(today)
+  if (summary.millionDollarNetWorthMonth !== null) {
+    millionNetWorthDate.setMonth(
+      today.getMonth() + summary.millionDollarNetWorthMonth,
+    )
+  }
 
-  const babySteps = [
-    {
-      step: 1,
-      name: "Emergency Fund ($1,000)",
-      description: "Build a small emergency fund",
-      completed: true,
-      dateCompleted: "2024-03-10",
-    },
-    {
-      step: 2,
-      name: "Debt Snowball",
-      description: "Pay off all non-mortgage debt",
-      completed: true,
-      dateCompleted: "2026-11-20",
-    },
-    {
-      step: 3,
-      name: "Full Emergency Fund (3-6 months)",
-      description: "Save 3-6 months of expenses",
-      completed: false,
-      dateCompleted: "2028-06-15",
-    },
-    {
-      step: 4,
-      name: "Retirement Investing (15%)",
-      description: "Invest 15% of gross income",
-      completed: false,
-      dateCompleted: "2028-06-15",
-    },
-    {
-      step: 5,
-      name: "College Savings",
-      description: "Save for children's education",
-      completed: false,
-      dateCompleted: "2030-01-10",
-    },
-    {
-      step: 6,
-      name: "Pay Off Home Early",
-      description: "Accelerate mortgage payments",
-      completed: false,
-      dateCompleted: "2035-05-30",
-    },
-    {
-      step: 7,
-      name: "Build Wealth & Give",
-      description: "Invest and support causes",
-      completed: false,
-      dateCompleted: "2035-05-30",
-    },
-  ]
+  const babySteps = summary.babySteps
 
   return (
     <div className="min-h-dvh p-8">
@@ -94,7 +35,7 @@ export default function Results() {
         <h1 className="text-4xl font-bold mb-8 text-base-content">
           Your Financial Freedom Plan
         </h1>
-
+        
         {/* Key Metrics Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Financial Freedom Card */}
@@ -102,16 +43,21 @@ export default function Results() {
             <div className="card-body">
               <h2 className="card-title text-lg">Financial Freedom</h2>
               <div className="flex items-center gap-4 mt-4">
+                <div className="badge badge-info badge-lg">
+                  Baby Step {summary.currentBabyStep}
+                </div>
                 <div
                   className={`badge badge-lg ${
-                    financialFreedomPossible ? "badge-success" : "badge-error"
+                    summary.financialFreedomPossible
+                      ? "badge-success"
+                      : "badge-error"
                   }`}
                 >
-                  {financialFreedomPossible ? "POSSIBLE" : "NEEDS WORK"}
+                  {summary.financialFreedomPossible ? "POSSIBLE" : "NEEDS WORK"}
                 </div>
               </div>
               <p className="text-sm text-base-content/70 mt-4">
-                {financialFreedomPossible
+                {summary.financialFreedomPossible
                   ? "You're on track to achieve financial freedom!"
                   : "Let's adjust your plan to reach freedom."}
               </p>
@@ -139,7 +85,10 @@ export default function Results() {
             <div className="card-body">
               <h2 className="card-title text-lg">Net Worth at Retirement</h2>
               <div className="text-3xl font-bold text-primary mt-4">
-                {modifiedResults[projectedRetirement].netWorth.toLocaleString('en-US', {currency: "USD", style: "currency"})}
+                {summary.projectedRetirementNetWorth.toLocaleString("en-US", {
+                  currency: "USD",
+                  style: "currency",
+                })}
               </div>
             </div>
           </div>
@@ -161,7 +110,11 @@ export default function Results() {
                       .toFixed()
                       .toLocaleString()
                   }
-                  interval={modifiedResults.length > 10 ? Math.floor(modifiedResults.length / 10) : 0}
+                  interval={
+                    modifiedResults.length > 10
+                      ? Math.floor(modifiedResults.length / 10)
+                      : 0
+                  }
                 />
                 <YAxis
                   tickFormatter={(data) =>

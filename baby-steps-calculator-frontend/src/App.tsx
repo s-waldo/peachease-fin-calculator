@@ -10,7 +10,7 @@ function App() {
 
   const pages = [<Introduction />, <Form />, <Results />]
 
-  return <div className="min-h-dvh w-full">{pages[2]}</div>
+  return <div className="min-h-dvh w-full">{pages[step]}</div>
 }
 
 export default App

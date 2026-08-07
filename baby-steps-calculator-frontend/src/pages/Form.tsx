@@ -1,9 +1,10 @@
 import { useState } from "react"
 import { FormTitle, Input } from "../components/form/formComponents"
-import {  z } from "zod"
+import { z } from "zod"
 import { useFieldArray, useForm, type FieldPath } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { formatInputValueToNumericDecimals } from "../utils/conversions"
+import { calculateFinancialFreedom } from "../utils/calculations"
 import { useGlobalStore } from "../utils/state/globalState"
 
 const steps = [
@@ -34,6 +35,9 @@ const steps = [
   },
 ]
 
+const parseNumericInput = (value: string) =>
+  Number(value.replace(/,/g, "").replace(/%/g, "").trim())
+
 const zFormData = z.object({
   age: z.string().min(1, { error: "Age is Required" }),
   annualIncome: z
@@ -61,7 +65,7 @@ const zFormData = z.object({
     .string()
     .min(1, { error: "Target Retirement Balance is Required" })
     .refine(
-      (val) => Number(val.replace(",", "")) > 0,
+      (val) => Number(val.replace(/,/g, "")) > 0,
       "Must be greater than 0",
     ),
   snowballAmount: z
@@ -89,6 +93,7 @@ export default function Form() {
   const nextStep = useGlobalStore((state) => state.nextStep)
   const globalFormData = useGlobalStore((state) => state.formData)
   const setFormData = useGlobalStore((state) => state.setFormData)
+  const setResults = useGlobalStore((state) => state.setResults)
   const [step, setStep] = useState(0)
   const [isFormShown, setIsFormShown] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
@@ -168,13 +173,51 @@ export default function Form() {
     setStep((prev) => prev - 1)
   }
   const onSubmit = (formData: zFormDataT) => {
-    console.log(formData)
-    setFormData("goals", {
-      projectedReturns: getValues().projectedReturns,
-      snowballAmount: getValues().snowballAmount,
-      targetEmergencyFund: getValues().targetEmergencyFund,
-      targetRetirementBalance: getValues().targetRetirementBalance,
+    setFormData("user", {
+      age: formData.age,
+      annualIncome: formData.annualIncome,
+      savings: formData.savings,
+      retirementBalance: formData.retirementBalance,
     })
+    setFormData("mortgage", {
+      balance: formData.balance,
+      payment: formData.payment,
+      rate: formData.rate,
+    })
+    setFormData("debts", formData.debts)
+    setFormData("goals", {
+      projectedReturns: formData.projectedReturns,
+      snowballAmount: formData.snowballAmount,
+      targetEmergencyFund: formData.targetEmergencyFund,
+      targetRetirementBalance: formData.targetRetirementBalance,
+    })
+
+    const calculatedResults = calculateFinancialFreedom({
+      stats: {
+        annualIncome: parseNumericInput(formData.annualIncome),
+        savings: parseNumericInput(formData.savings),
+        debts: formData.debts.map((debt) => ({
+          name: debt.name,
+          balance: parseNumericInput(debt.balance),
+          minimumPayment: parseNumericInput(debt.minimumPayment),
+          interestRateAsInteger: parseNumericInput(debt.interestRate),
+        })),
+        mortgage: {
+          balance: parseNumericInput(formData.balance),
+          payment: parseNumericInput(formData.payment),
+          interestRateAsInteger: parseNumericInput(formData.rate),
+        },
+        retirementAccountBalance: parseNumericInput(formData.retirementBalance),
+      },
+      snowball: parseNumericInput(formData.snowballAmount),
+      ageInMonths: Number(formData.age) * 12,
+      options: {
+        targetEmergencyFund: parseNumericInput(formData.targetEmergencyFund),
+        projectedReturnAsInteger: parseNumericInput(formData.projectedReturns),
+      },
+    })
+
+    setResults(calculatedResults, {targetEmergencyFund: parseNumericInput(formData.targetEmergencyFund), targetRetirementBalance: parseNumericInput(formData.targetRetirementBalance) })
     nextStep()
   }
 
