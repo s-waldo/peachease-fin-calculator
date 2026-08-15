@@ -32,10 +32,16 @@ export default function Results() {
   return (
     <div className="min-h-dvh p-8">
       <div className="w-full max-w-xl mx-auto">
+        <div className="flex gap-4 mb-8 justify-start">
+          <button className="btn btn-primary" onClick={prevStep}>
+            <i className="fa-solid fa-arrow-left"></i>Adjust Plan
+          </button>
+          {/* <button className="btn btn-ghost">Download Report</button> */}
+        </div>
         <h1 className="text-4xl font-bold mb-8 text-base-content">
           Your Financial Freedom Plan
         </h1>
-        
+
         {/* Key Metrics Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Financial Freedom Card */}
@@ -208,7 +214,7 @@ export default function Results() {
           <button className="btn btn-primary" onClick={prevStep}>
             Adjust Plan
           </button>
-          <button className="btn btn-ghost">Download Report</button>
+          {/* <button className="btn btn-ghost">Download Report</button> */}
         </div>
       </div>
     </div>

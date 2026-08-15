@@ -44,7 +44,7 @@ const zFormData = z.object({
     .string()
     .min(1, { error: "Annual Income is Required" })
     .refine(
-      (val) => Number(val.replace(",", "")) > 0,
+      (val) => Number(val.replace(/,/g, "")) > 0,
       "Must be greater than 0",
     ),
   savings: z.string().min(1, { error: "Savings is Required" }),
@@ -58,7 +58,7 @@ const zFormData = z.object({
     .string()
     .min(1, { error: "Target Emergency Fund is Required" })
     .refine(
-      (val) => Number(val.replace(",", "")) > 0,
+      (val) => Number(val.replace(/,/g, "")) > 0,
       "Must be greater than 0",
     ),
   targetRetirementBalance: z
@@ -72,7 +72,7 @@ const zFormData = z.object({
     .string()
     .min(1, { error: "Snowball Amount is Required" })
     .refine(
-      (val) => Number(val.replace(",", "")) > 0,
+      (val) => Number(val.replace(/,/g, "")) > 0,
       "Must be greater than 0",
     ),
   projectedReturns: z
@@ -217,7 +217,13 @@ export default function Form() {
       },
     })
 
-    setResults(calculatedResults, {targetEmergencyFund: parseNumericInput(formData.targetEmergencyFund), targetRetirementBalance: parseNumericInput(formData.targetRetirementBalance) })
+    setResults(calculatedResults, {
+      targetEmergencyFund: parseNumericInput(formData.targetEmergencyFund),
+      targetRetirementBalance: parseNumericInput(
+        formData.targetRetirementBalance,
+      ),
+    })
+
     nextStep()
   }
 

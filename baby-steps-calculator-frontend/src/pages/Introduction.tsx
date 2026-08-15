@@ -6,7 +6,7 @@ export default function Introduction() {
     <div className="grid lg:grid-cols-2 grid-rows-1 min-h-dvh p-10">
       <div className="flex flex-col items-center justify-center gap-10">
         <div className="text-center">
-          <h2 className="text-2xl font-bold">Welcome to Peachy!</h2>
+          <h2 className="text-2xl font-bold">Welcome to Base Camp!</h2>
           <p>Get started today to project your financial future.</p>
         </div>
         <div>

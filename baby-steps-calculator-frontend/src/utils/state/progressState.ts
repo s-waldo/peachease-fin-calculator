@@ -6,7 +6,12 @@ export interface ProgressSliceT {
   prevStep: () => void
 }
 
-export const progressStateStore: StateCreator<ProgressSliceT, [], [], ProgressSliceT> = (set) => ({
+export const progressStateStore: StateCreator<
+  ProgressSliceT,
+  [],
+  [],
+  ProgressSliceT
+> = (set) => ({
   step: 0,
   nextStep: () => set((state) => ({ step: state.step + 1 })),
   prevStep: () =>
